@@ -47,7 +47,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
         const newProgress = prev + 100 / (storyDuration / 100);
         if (newProgress >= 100) {
           clearProgressInterval();
-          moveToNextStory(false); // auto-play: false means not manual
+          moveToNextStory(false);
           return 0;
         }
         return newProgress;
@@ -79,7 +79,6 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
         setTimeout(onClose, transitionDuration);
       }
     } else {
-      // Auto: Skip to next *unviewed* story
       const nextUnviewedIndex = findNextUnviewedIndex(currentIndex);
       if (nextUnviewedIndex !== null) {
         setIsTransitioning(true);

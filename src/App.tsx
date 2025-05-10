@@ -40,8 +40,6 @@ const App: React.FC = () => {
     }
 
     setOriginalStories(updatedStories);
-
-    // Sort unviewed first for display
     const sorted = [...updatedStories].sort(
       (a, b) => Number(a.viewed) - Number(b.viewed)
     );
@@ -55,6 +53,23 @@ const App: React.FC = () => {
       return newTheme;
     });
   };
+  const handleStoryUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const newStory: Story = {
+        id: Date.now(),
+        imageUrl: reader.result as string,
+        altText: "Uploaded Story",
+        viewed: false,
+      };
+      const newStories = [newStory, ...originalStories];
+      setOriginalStories(newStories);
+      const sorted = [...newStories].sort((a, b) => Number(a.viewed) - Number(b.viewed));
+      setDisplayStories(sorted);
+    };
+    reader.readAsDataURL(file);
+  };
+  
 
   const handleStoryClick = (indexInDisplay: number) => {
     const clickedStoryId = displayStories[indexInDisplay].id;
@@ -112,7 +127,7 @@ const App: React.FC = () => {
           markAsViewed={markStoryAsViewed}
         />
       ) : (
-        <StoryList stories={displayStories} onStoryClick={handleStoryClick} />
+        <StoryList stories={displayStories} onStoryClick={handleStoryClick} onUpload={handleStoryUpload} />
       )}
     </div>
   );
