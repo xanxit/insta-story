@@ -17,6 +17,7 @@ const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [originalStories, setOriginalStories] = useState<Story[]>([]);
   const [displayStories, setDisplayStories] = useState<Story[]>([]);
+  const [punScreenEnabled, setPunScreenEnabled] = useState(false);
 
   useEffect(() => {
     const savedTheme = sessionStorage.getItem("theme");
@@ -64,12 +65,14 @@ const App: React.FC = () => {
       };
       const newStories = [newStory, ...originalStories];
       setOriginalStories(newStories);
-      const sorted = [...newStories].sort((a, b) => Number(a.viewed) - Number(b.viewed));
+      const sorted = [...newStories].sort(
+        (a, b) => Number(a.viewed) - Number(b.viewed)
+      );
       setDisplayStories(sorted);
     };
+    setPunScreenEnabled(true);
     reader.readAsDataURL(file);
   };
-  
 
   const handleStoryClick = (indexInDisplay: number) => {
     const clickedStoryId = displayStories[indexInDisplay].id;
@@ -119,15 +122,41 @@ const App: React.FC = () => {
         </button>
       </div>
 
-      {isViewerOpen ? (
-        <StoryViewer
-          stories={originalStories}
-          initialIndex={currentStoryIndex}
-          onClose={closeStoryViewer}
-          markAsViewed={markStoryAsViewed}
-        />
+      {!punScreenEnabled ? (
+        <>
+          {isViewerOpen ? (
+            <StoryViewer
+              stories={originalStories}
+              initialIndex={currentStoryIndex}
+              onClose={closeStoryViewer}
+              markAsViewed={markStoryAsViewed}
+            />
+          ) : (
+            <StoryList
+              stories={displayStories}
+              onStoryClick={handleStoryClick}
+              onUpload={handleStoryUpload}
+            />
+          )}
+        </>
       ) : (
-        <StoryList stories={displayStories} onStoryClick={handleStoryClick} onUpload={handleStoryUpload} />
+        <div className="pun-screen">
+          <h2>Well, the app "crashed"! 📚💥</h2>
+          <p>
+            Just kidding—it was a prank! Click “Continue” to see your uploaded
+            story.
+          </p>
+          <p className="pun-ps">
+            PS: Your uploaded story will <strong>not</strong> be visible on
+            refresh, as I don’t want to overload your browser.
+          </p>
+          <button
+            className="pun-continue-btn"
+            onClick={() => setPunScreenEnabled(false)}
+          >
+            Continue
+          </button>
+        </div>
       )}
     </div>
   );
