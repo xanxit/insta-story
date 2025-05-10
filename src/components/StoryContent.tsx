@@ -5,18 +5,21 @@ interface Story {
   id: number;
   imageUrl: string;
   altText: string;
+  viewed: boolean;
 }
 
 interface StoryViewerProps {
   stories: Story[];
   initialIndex: number;
   onClose: () => void;
+  markAsViewed: (index: number) => void;
 }
 
 const StoryViewer: React.FC<StoryViewerProps> = ({
   stories,
   initialIndex,
   onClose,
+  markAsViewed,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [progress, setProgress] = useState(0);
@@ -34,16 +37,17 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
   };
 
   useEffect(() => {
+    markAsViewed(currentIndex);
+
     setProgress(0);
     clearProgressInterval();
 
     intervalRef.current = setInterval(() => {
       setProgress((prev) => {
         const newProgress = prev + 100 / (storyDuration / 100);
-
         if (newProgress >= 100) {
           clearProgressInterval();
-          moveToNextStory();
+          moveToNextStory(false); // auto-play: false means not manual
           return 0;
         }
         return newProgress;
@@ -53,26 +57,59 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
     return clearProgressInterval;
   }, [currentIndex]);
 
-  const moveToNextStory = () => {
-    if (currentIndex < stories.length - 1) {
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentIndex(currentIndex + 1);
-        setIsTransitioning(false);
-      }, transitionDuration);
-    } else {
-      setIsTransitioning(true);
-      setTimeout(() => {
-        onClose();
-      }, transitionDuration);
+  const findNextUnviewedIndex = (startIndex: number): number | null => {
+    for (let i = startIndex + 1; i < stories.length; i++) {
+      if (!stories[i].viewed) {
+        return i;
+      }
     }
+    return null;
+  };
+
+  const moveToNextStory = (manual = false) => {
+    if (manual) {
+      if (currentIndex < stories.length - 1) {
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setCurrentIndex(currentIndex + 1);
+          setIsTransitioning(false);
+        }, transitionDuration);
+      } else {
+        setIsTransitioning(true);
+        setTimeout(onClose, transitionDuration);
+      }
+    } else {
+      // Auto: Skip to next *unviewed* story
+      const nextUnviewedIndex = findNextUnviewedIndex(currentIndex);
+      if (nextUnviewedIndex !== null) {
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setCurrentIndex(nextUnviewedIndex);
+          setIsTransitioning(false);
+        }, transitionDuration);
+      } else {
+        setIsTransitioning(true);
+        setTimeout(onClose, transitionDuration);
+      }
+    }
+  };
+
+  const findPrevUnviewedIndex = (startIndex: number): number | null => {
+    for (let i = startIndex - 1; i >= 0; i--) {
+      if (!stories[i].viewed) {
+        return i;
+      }
+    }
+    return startIndex > 0 ? startIndex - 1 : null;
   };
 
   const moveToPrevStory = () => {
     if (currentIndex > 0) {
+      const prevIndex = findPrevUnviewedIndex(currentIndex) ?? currentIndex - 1;
+
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentIndex(currentIndex - 1);
+        setCurrentIndex(prevIndex);
         setIsTransitioning(false);
       }, transitionDuration);
     } else {
@@ -87,10 +124,8 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
 
   const handleNextStory = () => {
     clearProgressInterval();
-    moveToNextStory();
+    moveToNextStory(true);
   };
-
-  // Safety check for currentIndex
   if (currentIndex < 0 || currentIndex >= stories.length) {
     onClose();
     return null;

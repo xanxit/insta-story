@@ -1,10 +1,11 @@
 import React from "react";
-import '../styles/StoryList.css';
+import "../styles/StoryList.css";
 
 interface Story {
   id: number;
   imageUrl: string;
   altText: string;
+  viewed: boolean;
 }
 
 interface StoryListProps {
@@ -18,7 +19,7 @@ const StoryList: React.FC<StoryListProps> = ({ stories, onStoryClick }) => {
       {stories.map((story, index) => (
         <div
           key={story.id}
-          className="story-item"
+          className={`story-item ${story.viewed ? "viewed" : "not-viewed"}`}
           onClick={() => onStoryClick(index)}
         >
           <img src={story.imageUrl} alt={story.altText} />

@@ -1,41 +1,67 @@
 import React, { useState, useEffect } from "react";
 import StoryList from "./components/StoryList";
 import StoryViewer from "./components/StoryContent";
+import storiesData from "./data/stories.json";
 import "./styles/App.css";
+
+interface Story {
+  id: number;
+  imageUrl: string;
+  altText: string;
+  viewed: boolean;
+}
 
 const App: React.FC = () => {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
-
-  const stories = [
-    { id: 1, imageUrl: "/images/story1.jpg", altText: "Story 1" },
-    { id: 2, imageUrl: "/images/story2.jpg", altText: "Story 2" },
-    { id: 3, imageUrl: "/images/story3.jpg", altText: "Story 3" },
-    { id: 4, imageUrl: "/images/story4.jpg", altText: "Story 4" },
-    { id: 5, imageUrl: "/images/story1.jpg", altText: "Story 1" },
-    { id: 6, imageUrl: "/images/story2.jpg", altText: "Story 2" },
-    { id: 7, imageUrl: "/images/story3.jpg", altText: "Story 3" },
-    { id: 8, imageUrl: "/images/story4.jpg", altText: "Story 4" },
-  ];
+  const [originalStories, setOriginalStories] = useState<Story[]>([]);
+  const [displayStories, setDisplayStories] = useState<Story[]>([]);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
+    const savedTheme = sessionStorage.getItem("theme");
     if (savedTheme === "dark") {
       setIsDarkMode(true);
     }
+
+    const savedViewedStatus = sessionStorage.getItem("viewedStories");
+    let updatedStories = storiesData;
+
+    if (savedViewedStatus) {
+      try {
+        const viewedIds = JSON.parse(savedViewedStatus);
+        updatedStories = storiesData.map((story) => ({
+          ...story,
+          viewed: viewedIds.includes(story.id),
+        }));
+      } catch (e) {
+        console.error("Error parsing viewed stories data", e);
+      }
+    }
+
+    setOriginalStories(updatedStories);
+
+    // Sort unviewed first for display
+    const sorted = [...updatedStories].sort(
+      (a, b) => Number(a.viewed) - Number(b.viewed)
+    );
+    setDisplayStories(sorted);
   }, []);
 
   const toggleTheme = () => {
     setIsDarkMode((prev) => {
       const newTheme = !prev;
-      localStorage.setItem("theme", newTheme ? "dark" : "light");
+      sessionStorage.setItem("theme", newTheme ? "dark" : "light");
       return newTheme;
     });
   };
 
-  const handleStoryClick = (index: number) => {
-    setCurrentStoryIndex(index);
+  const handleStoryClick = (indexInDisplay: number) => {
+    const clickedStoryId = displayStories[indexInDisplay].id;
+    const actualIndex = originalStories.findIndex(
+      (s) => s.id === clickedStoryId
+    );
+    setCurrentStoryIndex(actualIndex);
     setIsViewerOpen(true);
   };
 
@@ -43,25 +69,50 @@ const App: React.FC = () => {
     setIsViewerOpen(false);
   };
 
+  const markStoryAsViewed = (index: number) => {
+    setOriginalStories((prevStories) => {
+      const updatedStories = [...prevStories];
+      updatedStories[index] = {
+        ...updatedStories[index],
+        viewed: true,
+      };
+
+      const viewedIds = updatedStories
+        .filter((story) => story.viewed)
+        .map((story) => story.id);
+      sessionStorage.setItem("viewedStories", JSON.stringify(viewedIds));
+
+      const sorted = [...updatedStories].sort(
+        (a, b) => Number(a.viewed) - Number(b.viewed)
+      );
+      setDisplayStories(sorted);
+
+      return updatedStories;
+    });
+  };
+
   return (
     <div className={`app ${isDarkMode ? "dark-mode" : "light-mode"}`}>
       <div className="top-bar">
-          <img
-            src="https://www.stage.in/_next/image?url=https%3A%2F%2Fmedia.stage.in%2Fstatic%2Fstage_logo_horizontal.webp&w=256&q=75"
-            className="stage-logo"
-          />
+        <img
+          src="https://www.stage.in/_next/image?url=https%3A%2F%2Fmedia.stage.in%2Fstatic%2Fstage_logo_horizontal.webp&w=256&q=75"
+          className="stage-logo"
+          alt="Stage Logo"
+        />
         <button className="theme-toggle-btn" onClick={toggleTheme}>
           {isDarkMode ? "🌞" : "🌙"}
         </button>
       </div>
+
       {isViewerOpen ? (
         <StoryViewer
-          stories={stories}
+          stories={originalStories}
           initialIndex={currentStoryIndex}
           onClose={closeStoryViewer}
+          markAsViewed={markStoryAsViewed}
         />
       ) : (
-        <StoryList stories={stories} onStoryClick={handleStoryClick} />
+        <StoryList stories={displayStories} onStoryClick={handleStoryClick} />
       )}
     </div>
   );

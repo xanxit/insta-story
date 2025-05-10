@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "imageUrl": "/images/story1.jpg",
+    "altText": "Story 1",
+    "viewed": false
+  },
+  {
+    "id": 2,
+    "imageUrl": "/images/story2.jpg",
+    "altText": "Story 2",
+    "viewed": false
+  },
+  {
+    "id": 3,
+    "imageUrl": "/images/story3.jpg",
+    "altText": "Story 3",
+    "viewed": false
+  },
+  {
+    "id": 4,
+    "imageUrl": "/images/story4.jpg",
+    "altText": "Story 4",
+    "viewed": false
+  }
+]
