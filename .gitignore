@@ -136,3 +136,5 @@ dist
 .pnp.*
 
 test-results/
+yarm.lock
+package-lock.json
