@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import StoryList from "./components/StoryList";
 import StoryViewer from "./components/StoryContent";
 import storiesData from "./data/stories.json";
@@ -11,103 +11,88 @@ interface Story {
   viewed: boolean;
 }
 
+const VIEWED_KEY = "viewedStories";
+const THEME_KEY = "theme";
+
 const App: React.FC = () => {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
-  const [originalStories, setOriginalStories] = useState<Story[]>([]);
-  const [displayStories, setDisplayStories] = useState<Story[]>([]);
   const [punScreenEnabled, setPunScreenEnabled] = useState(false);
 
-  useEffect(() => {
-    const savedTheme = sessionStorage.getItem("theme");
-    if (savedTheme === "dark") {
-      setIsDarkMode(true);
-    }
-
-    const savedViewedStatus = sessionStorage.getItem("viewedStories");
-    let updatedStories = storiesData;
-
-    if (savedViewedStatus) {
-      try {
-        const viewedIds = JSON.parse(savedViewedStatus);
-        updatedStories = storiesData.map((story) => ({
-          ...story,
-          viewed: viewedIds.includes(story.id),
-        }));
-      } catch (e) {
-        console.error("Error parsing viewed stories data", e);
-      }
-    }
-
-    setOriginalStories(updatedStories);
-    const sorted = [...updatedStories].sort(
-      (a, b) => Number(a.viewed) - Number(b.viewed)
-    );
-    setDisplayStories(sorted);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    return sessionStorage.getItem(THEME_KEY) === "dark";
+  });
+  const toggleTheme = useCallback(() => {
+    setIsDarkMode((prev) => {
+      const next = !prev;
+      sessionStorage.setItem(THEME_KEY, next ? "dark" : "light");
+      return next;
+    });
   }, []);
 
-  const toggleTheme = () => {
-    setIsDarkMode((prev) => {
-      const newTheme = !prev;
-      sessionStorage.setItem("theme", newTheme ? "dark" : "light");
-      return newTheme;
-    });
-  };
-  const handleStoryUpload = (file: File) => {
+  const [originalStories, setOriginalStories] = useState<Story[]>(() => {
+    const saved = sessionStorage.getItem(VIEWED_KEY);
+    let viewedIds: number[] = [];
+    try {
+      viewedIds = saved ? JSON.parse(saved) : [];
+    } catch {
+      console.error("Failed to parse viewed stories from sessionStorage");
+    }
+    return storiesData.map((s) => ({
+      ...s,
+      viewed: viewedIds.includes(s.id),
+    }));
+  });
+
+  // derive the sorted list (unviewed first)
+  const displayStories = useMemo(
+    () =>
+      [...originalStories].sort((a, b) => Number(a.viewed) - Number(b.viewed)),
+    [originalStories]
+  );
+
+  const handleStoryUpload = useCallback((file: File) => {
+    setPunScreenEnabled(true);
     const reader = new FileReader();
     reader.onloadend = () => {
-      const newStory: Story = {
-        id: Date.now(),
-        imageUrl: reader.result as string,
-        altText: "Uploaded Story",
-        viewed: false,
-      };
-      const newStories = [newStory, ...originalStories];
-      setOriginalStories(newStories);
-      const sorted = [...newStories].sort(
-        (a, b) => Number(a.viewed) - Number(b.viewed)
-      );
-      setDisplayStories(sorted);
+      setOriginalStories((prev) => [
+        {
+          id: Date.now(),
+          imageUrl: reader.result as string,
+          altText: "Uploaded Story",
+          viewed: false,
+        },
+        ...prev,
+      ]);
     };
-    setPunScreenEnabled(true);
     reader.readAsDataURL(file);
-  };
+  }, []);
 
-  const handleStoryClick = (indexInDisplay: number) => {
-    const clickedStoryId = displayStories[indexInDisplay].id;
-    const actualIndex = originalStories.findIndex(
-      (s) => s.id === clickedStoryId
-    );
-    setCurrentStoryIndex(actualIndex);
-    setIsViewerOpen(true);
-  };
+  const handleStoryClick = useCallback(
+    (displayIndex: number) => {
+      const storyId = displayStories[displayIndex].id;
+      const actualIndex = originalStories.findIndex((s) => s.id === storyId);
+      if (actualIndex !== -1) {
+        setCurrentStoryIndex(actualIndex);
+        setIsViewerOpen(true);
+      }
+    },
+    [displayStories, originalStories]
+  );
 
-  const closeStoryViewer = () => {
+  const closeStoryViewer = useCallback(() => {
     setIsViewerOpen(false);
-  };
+  }, []);
 
-  const markStoryAsViewed = (index: number) => {
-    setOriginalStories((prevStories) => {
-      const updatedStories = [...prevStories];
-      updatedStories[index] = {
-        ...updatedStories[index],
-        viewed: true,
-      };
-
-      const viewedIds = updatedStories
-        .filter((story) => story.viewed)
-        .map((story) => story.id);
-      sessionStorage.setItem("viewedStories", JSON.stringify(viewedIds));
-
-      const sorted = [...updatedStories].sort(
-        (a, b) => Number(a.viewed) - Number(b.viewed)
-      );
-      setDisplayStories(sorted);
-
-      return updatedStories;
+  const markStoryAsViewed = useCallback((index: number) => {
+    setOriginalStories((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], viewed: true };
+      const viewedIds = next.filter((s) => s.viewed).map((s) => s.id);
+      sessionStorage.setItem(VIEWED_KEY, JSON.stringify(viewedIds));
+      return next;
     });
-  };
+  }, []);
 
   return (
     <div className={`app ${isDarkMode ? "dark-mode" : "light-mode"}`}>
@@ -123,28 +108,25 @@ const App: React.FC = () => {
       </div>
 
       {!punScreenEnabled ? (
-        <>
-          {isViewerOpen ? (
-            <StoryViewer
-              stories={originalStories}
-              initialIndex={currentStoryIndex}
-              onClose={closeStoryViewer}
-              markAsViewed={markStoryAsViewed}
-            />
-          ) : (
-            <StoryList
-              stories={displayStories}
-              onStoryClick={handleStoryClick}
-              onUpload={handleStoryUpload}
-            />
-          )}
-        </>
+        isViewerOpen ? (
+          <StoryViewer
+            stories={originalStories}
+            initialIndex={currentStoryIndex}
+            onClose={closeStoryViewer}
+            markAsViewed={markStoryAsViewed}
+          />
+        ) : (
+          <StoryList
+            stories={displayStories}
+            onStoryClick={handleStoryClick}
+            onUpload={handleStoryUpload}
+          />
+        )
       ) : (
         <div className="pun-screen">
           <h2>Well, the app "crashed"! 📚💥</h2>
           <p>
-            Just kidding—it was a prank! Click “Continue” to see your uploaded
-            story.
+            Just kidding—it was a prank! Click “Continue” to see your upload.
           </p>
           <p className="pun-ps">
             PS: Your uploaded story will <strong>not</strong> be visible on
