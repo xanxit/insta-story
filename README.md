@@ -1,54 +1,71 @@
-# React + TypeScript + Vite
+# Insta-Story React App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 🚀 Live Demo
 
-Currently, two official plugins are available:
+Try it out here: [https://insta-story-ten.vercel.app/](https://insta-story-ten.vercel.app/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 📦 Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+- Node.js v14 or higher
+- npm v6 or higher
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Installation
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Clone the repo
+   ```bash
+   git clone [https://github.com/your-username/insta-story.git](https://github.com/your-username/insta-story.git)
+   cd insta-story
+   ```
+2. Install dependencies
+   ```bash
+   npm install or yarn
+   ```
+3. Start the development server
+   ```bash
+   npm run dev
+   ```
+   The app will be available at http://localhost:5173.
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+### End-to-End Tests
+
+We use Playwright for E2E testing.
+
+- **Run all tests (headless)**
+  ```bash
+  npm run test:e2e
+  ```
+- **Run tests in headed mode\*\***
+  ```bash
+  npm run test:e2e:headed
+  ```
+- **View HTML report**
+  ```bash
+  npm run test:e2e:report
+  ```
+
+## ⚙️ Design & Architecture
+
+### Component Structure
+
+- **`App`**: Top-level state, theme toggle, navigation between `<StoryList>` and `<StoryViewer>` (or `<PunScreen>`).
+- **`StoryList`**: Displays thumbnails and handles file uploads.
+- **`StoryViewer`**: Full-screen story viewer with progress bar, manual & auto-advance.
+- **`PunScreen`**: Lightweight "joke" overlay when you upload (with a "hire me" call-to-action).
+
+### Performance Optimizations
+
+- **`useMemo`** for sorting stories so we only recompute when the underlying data changes.
+- **`useCallback`** to stabilize handler references and avoid unnecessary re-renders.
+- **Vite** for lightning-fast hot module replacement and lean production bundles (via Rollup under the hood).
+- **SessionStorage** for minimal persistence—no heavy client-side database or global state library.
+
+### Scalability Considerations
+
+- **Modular components**: each feature lives in its own file under `src/components`, easy to maintain or extract.
+- **Configurable durations**: test hooks override timing via `window.__STORY_DURATION`, so adding new animations or story behaviors remains testable.
+- **Decoupled styling**: CSS per-component and CSS variables for theming allow easy design updates or brand changes.
+- **E2E coverage** with Playwright ensures that as new features (e.g. comments, reactions) are added, regressions are caught early.
