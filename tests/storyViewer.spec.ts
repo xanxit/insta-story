@@ -1,5 +1,11 @@
 import { test, expect } from "@playwright/test";
 
+declare global {
+  interface Window {
+    __STORY_DURATION?: number;
+  }
+}
+
 test.describe("StoryViewer (src/components/StoryContent.tsx)", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
@@ -10,36 +16,28 @@ test.describe("StoryViewer (src/components/StoryContent.tsx)", () => {
   test("manual next and prev navigation works", async ({ page }) => {
     const navZones = page.locator(".story-navigation .nav-zone");
     const img = page.locator(".story-viewer img");
-
-    const firstSrc = await img.getAttribute("src");
-
+    const firstSrcRaw = await img.getAttribute("src");
+    expect(firstSrcRaw).not.toBeNull();
+    const firstSrc = firstSrcRaw!;
     await navZones.nth(1).click();
-    const secondSrc = await img.getAttribute("src");
-    await expect(secondSrc).not.toBe(firstSrc);
-
+    await expect(img).not.toHaveAttribute("src", firstSrc);
     await navZones.nth(0).click();
-    const backToFirst = await img.getAttribute("src");
-    await expect(backToFirst).toBe(firstSrc);
+    await expect(img).toHaveAttribute("src", firstSrc);
   });
 
   test("auto-advance after STORY_DURATION closes or moves to next unviewed", async ({
     page,
   }) => {
     await page.addInitScript(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).__STORY_DURATION = 500;
+      window.__STORY_DURATION = 500;
     });
-
     await page.reload();
     await page.locator(".story-item.not-viewed").first().click();
-
     await page.waitForTimeout(700);
-
-    const remaining = await page.locator(".story-viewer").count();
-    if (remaining) {
+    const viewerCount = await page.locator(".story-viewer").count();
+    if (viewerCount > 0) {
       await expect(page.locator(".story-viewer")).toBeVisible();
     } else {
-      // closed
       await expect(page.locator(".story-viewer")).not.toBeVisible();
     }
   });

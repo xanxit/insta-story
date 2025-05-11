@@ -31,7 +31,7 @@ test.describe('App (src/App.tsx)', () => {
 
   test('shows pun-screen on upload and then continues to show new story', async ({ page }) => {
     const uploadSlot = page.locator('.story-item.upload');
-    await uploadSlot.locator('input[type="file"]').setInputFiles('tests/fixtures/test-image.png');
+    await uploadSlot.locator('input[type="file"]').setInputFiles('tests/img/test-image.jpeg');
     await expect(page.locator('.pun-screen')).toBeVisible();
     await page.locator('.pun-continue-btn').click();
     await expect(page.locator('.pun-screen')).not.toBeVisible();
