@@ -35,7 +35,14 @@
   font-size: 0.875rem;
   outline: none;
 }
-
+.theme-toggle-btn:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.theme-toggle-btn:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 2px;
+}
 .light-mode {
   --bg-color: #ffffff;
   --text-color: #111111;
