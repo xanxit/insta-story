@@ -136,3 +136,5 @@ dist
 .pnp.*
 
 test-results/
+yarn.lock
+package-lock.json

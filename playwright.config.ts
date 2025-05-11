@@ -1,24 +1,15 @@
-// playwright.config.ts
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
-  testDir: './e2e',
-  timeout: 30000,
-  expect: {
-    timeout: 5000,
-  },
+  testDir: "./tests",
+  timeout: 30 * 1000,
   use: {
+    baseURL: "http://localhost:5173",
     headless: true,
-    viewport: { width: 375, height: 667 }, // Mobile-friendly
-    ignoreHTTPSErrors: true,
-    video: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-    baseURL: 'http://localhost:5173',
   },
-  projects: [
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-  ],
-})
+  webServer: {
+    command: "npm run dev",
+    port: 5173,
+    reuseExistingServer: true,
+  },
+});
