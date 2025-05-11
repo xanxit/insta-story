@@ -7,7 +7,7 @@
   color: var(--text-color);
   transition: background-color 0.3s ease, color 0.3s ease;
   overflow: hidden;
-  width: 99.9vw;
+  width: 99.99vw;
 }
 
 .top-bar {
