@@ -17,7 +17,7 @@ Try it out here: [https://insta-story-ten.vercel.app/](https://insta-story-ten.v
 
 1. Clone the repo
    ```bash
-   git clone [https://github.com/your-username/insta-story.git](https://github.com/your-username/insta-story.git)
+   git clone https://github.com/your-username/insta-story.git
    cd insta-story
    ```
 2. Install dependencies
