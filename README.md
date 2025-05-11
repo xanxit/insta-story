@@ -26,7 +26,7 @@ Try it out here: [https://insta-story-ten.vercel.app/](https://insta-story-ten.v
    ```
 3. Start the development server
    ```bash
-   npm run dev
+   npm run dev or yarn dev
    ```
    The app will be available at http://localhost:5173.
 
@@ -36,15 +36,15 @@ We use Playwright for E2E testing.
 
 - **Run all tests (headless)**
   ```bash
-  npm run test:e2e
+  npm run test:e2e or yarn test:e2e
   ```
 - **Run tests in headed mode\*\***
   ```bash
-  npm run test:e2e:headed
+  npm run test:e2e:headed or yarn test:e2e:headed
   ```
 - **View HTML report**
   ```bash
-  npm run test:e2e:report
+  npm run test:e2e:report or yarn test:e2e:report
   ```
 
 ## ⚙️ Design & Architecture
