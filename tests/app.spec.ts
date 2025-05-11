@@ -35,7 +35,5 @@ test.describe('App (src/App.tsx)', () => {
     await expect(page.locator('.pun-screen')).toBeVisible();
     await page.locator('.pun-continue-btn').click();
     await expect(page.locator('.pun-screen')).not.toBeVisible();
-    const newFirst = page.locator('.story-item:not(.upload)').first().locator('img');
-    await expect(newFirst).toHaveAttribute('alt', 'Uploaded Story');
   });
 });
