@@ -51,9 +51,9 @@ We use Playwright for E2E testing.
 
 ### Component Structure
 
-- **`App`**: Top-level state, theme toggle, navigation between `<StoryList>` and `<StoryViewer>` (or `<PunScreen>`).
+- **`App`**: Top-level state, theme toggle, navigation between `<StoryList>` and `<StoryContent>` (or `<PunScreen>`).
 - **`StoryList`**: Displays thumbnails and handles file uploads.
-- **`StoryViewer`**: Full-screen story viewer with progress bar, manual & auto-advance.
+- **`StoryContent`**: Full-screen story viewer with progress bar, manual & auto-advance.
 - **`PunScreen`**: Lightweight "joke" overlay when you upload (with a "hire me" call-to-action).
 
 ### Performance Optimizations
