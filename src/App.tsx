@@ -3,6 +3,7 @@ import StoryList from "./components/StoryList";
 import StoryViewer from "./components/StoryContent";
 import storiesData from "./data/stories.json";
 import "./styles/App.css";
+import PunScreen from "./components/PunScreen";
 
 interface Story {
   id: number;
@@ -13,6 +14,7 @@ interface Story {
 
 const VIEWED_KEY = "viewedStories";
 const THEME_KEY = "theme";
+const IS_PUN_DONE = "ispunDone";
 
 const App: React.FC = () => {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
@@ -52,20 +54,25 @@ const App: React.FC = () => {
   );
 
   const handleStoryUpload = useCallback((file: File) => {
-    setPunScreenEnabled(true);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setOriginalStories((prev) => [
-        {
-          id: Date.now(),
-          imageUrl: reader.result as string,
-          altText: "Uploaded Story",
-          viewed: false,
-        },
-        ...prev,
-      ]);
-    };
-    reader.readAsDataURL(file);
+    const punStatus = sessionStorage.getItem(IS_PUN_DONE);
+    if (punStatus === null) {
+      setPunScreenEnabled(true);
+      sessionStorage.setItem(IS_PUN_DONE, "true");
+    } else {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setOriginalStories((prev) => [
+          {
+            id: Date.now(),
+            imageUrl: reader.result as string,
+            altText: "Uploaded Story",
+            viewed: false,
+          },
+          ...prev,
+        ]);
+      };
+      reader.readAsDataURL(file);
+    }
   }, []);
 
   const handleStoryClick = useCallback(
@@ -123,22 +130,7 @@ const App: React.FC = () => {
           />
         )
       ) : (
-        <div className="pun-screen">
-          <h2>Well, the app "crashed"! 📚💥</h2>
-          <p>
-            Just kidding—it was a prank! Click “Continue” to see your upload.
-          </p>
-          <p className="pun-ps">
-            PS: Your uploaded story will <strong>not</strong> be visible on
-            refresh, as I don’t want to overload your browser.
-          </p>
-          <button
-            className="pun-continue-btn"
-            onClick={() => setPunScreenEnabled(false)}
-          >
-            Continue
-          </button>
-        </div>
+        <PunScreen setPunScreenEnabled={setPunScreenEnabled} />
       )}
     </div>
   );
