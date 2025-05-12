@@ -14,7 +14,7 @@ const PunScreen: React.FC<PunScreenProps> = ({ setPunScreenEnabled }) => {
 
   return (
     <div className="pun-screen">
-      <h2>Surprise! That “crash” was just a demo stunt 🤹‍♂️</h2>
+      {/* <h2>Surprise! That “crash” was just a demo stunt 🤹‍♂️</h2> */}
       <p>
         No actual bugs here—I'm hard at work on the full upload feature. Think
         we can make it even better? Hire me and let’s build it together! Click{" "}
