@@ -1,1 +1,1 @@
-npm run test:e2e:coverage
+yarn test:e2e:coverage
