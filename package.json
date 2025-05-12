@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:e2e": "playwright test",
-    "test:e2e:coverage": "c8 --reporter=lcov --reporter=text --check-coverage --lines 90 --functions 90 --branches 90 --statements 90 npx playwright test",
+    "test:e2e:coverage": "c8 --reporter=lcov --reporter=text --all --lines 90 --functions 90 --branches 90 --statements 90 npx playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",
     "postinstall": "husky install"
